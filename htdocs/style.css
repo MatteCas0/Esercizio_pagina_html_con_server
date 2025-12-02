@@ -1,0 +1,15 @@
+body{
+    text-align: center;
+}
+
+.font1{
+    font-style: italic;
+    font-size: 30;
+}
+
+img{
+    width: 300px;
+    margin-top: 1%;
+    margin-left: auto;
+    margin-right: auto;
+}
