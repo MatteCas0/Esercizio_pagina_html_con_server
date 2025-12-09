@@ -25,25 +25,26 @@ public class MyThread extends Thread{
             String version = request[2];
             int contentLenght = 0;
 
+            System.out.println("sono entrato nel thread");
+
             switch (method) {
                 case "GET":
+                    System.out.println("sono nel get");
                     pathVerify(path);
                     contentLenght = contentLenghtFinder(in);
 
                     File file = new File("htdocs" + path);
 
                     if(!path.endsWith("/")){
-
+                        System.out.println("path finisce con /");
                         out.println("HTTP/1.1 301 Moved Permanently");
                         out.println("Content-Length: " + file.length() + "");
                         out.println("Content-Type: " + getContentType(file) + "");
                         out.println("location: " + file + "");
                         out.println("");
-                        path += "/";
                     }
             
                     if(file.exists()) {
-                        
                         out.println("HTTP/1.1 200 OK");
                         out.println("Content-Length: " + file.length() + "");
                         out.println("Content-Type: " + getContentType(file) + "");
@@ -98,7 +99,6 @@ public class MyThread extends Thread{
             case "html":
                 return "text/html";
             case "css":
-
                 return "text/css";
             case "jpeg":
                 return "image/jpeg";
