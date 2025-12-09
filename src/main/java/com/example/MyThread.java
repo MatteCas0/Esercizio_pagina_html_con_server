@@ -52,7 +52,7 @@ public class MyThread extends Thread{
                         outBinary.write(buf, 0, n);
                     }
                     input.close();
-                    
+                    s.close();
                 }
                 else  out.println("HTTP/1.1 404 not found");
             }
