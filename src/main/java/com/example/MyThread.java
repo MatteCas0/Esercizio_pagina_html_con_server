@@ -22,39 +22,67 @@ public class MyThread extends Thread{
             String[] request = in.readLine().split(" ", 3);
             String method = request[0];
             String path = request[1];
+            String version = request[2];
+            int contentLenght = 0;
 
-            //System.out.println(path);
-            if(!method.equals("GET")){
-                out.println("HTTP/1.1 405 Method not allowed");
-                out.println(path);
-                out.flush();
-               
-            }
-            else{
-                
-                if(path.endsWith("/")){
-                    path += "index.html";
-                }
+            switch (method) {
+                case "GET":
+                    pathVerify(path);
+                    contentLenght = contentLenghtFinder(in);
 
-                File file = new File("htdocs" + path);
+                    File file = new File("htdocs" + path);
 
-                //System.out.println(file.getAbsolutePath());
-                if(file.exists()) {
-                    
-                    out.println("HTTP/1.1 200 OK");
-                    out.println("Content-Length: " + file.length() + "");
-                    out.println("Content-Type: " + getContentType(file) + "");
-                    out.println("");
-                    InputStream input = new FileInputStream(file);
-                    byte[] buf = new byte[8192];
-                    int n;
-                    while ((n = input.read(buf)) != -1) {
-                        outBinary.write(buf, 0, n);
+                    if(!path.endsWith("/")){
+
+                        out.println("HTTP/1.1 301 Moved Permanently");
+                        out.println("Content-Length: " + file.length() + "");
+                        out.println("Content-Type: " + getContentType(file) + "");
+                        out.println("location: " + file + "");
+                        out.println("");
+                        path += "/";
                     }
-                    input.close();
-                    s.close();
-                }
-                else  out.println("HTTP/1.1 404 not found");
+            
+                    if(file.exists()) {
+                        
+                        out.println("HTTP/1.1 200 OK");
+                        out.println("Content-Length: " + file.length() + "");
+                        out.println("Content-Type: " + getContentType(file) + "");
+                        out.println("");
+                        InputStream input = new FileInputStream(file);
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = input.read(buf)) != -1) {
+                            outBinary.write(buf, 0, n);
+                        }
+                        input.close();
+                    }
+                    else  out.println("HTTP/1.1 404 not found");
+
+                    break;
+                case "POST":
+                    pathVerify(path);
+                    contentLenght = contentLenghtFinder(in);
+                    break;
+                case "HEAD":
+                    pathVerify(path);
+                    contentLenght = contentLenghtFinder(in);
+                    break;
+                case "PUT":
+                case "PATCH":
+                case "DELETE":
+                case "OPTIONS":
+                case "CONNECT":
+                case "TRACE":
+                    out.println("HTTP/1.1 405 Method not allowed");
+                    out.println(path);
+                    out.flush();
+                    break;
+
+                default:
+                    out.println("HTTP/1.1 400 Bad Request");
+                    out.println(path);
+                    out.flush();
+                    break;
             }
                 
             System.out.println(path);
@@ -80,5 +108,54 @@ public class MyThread extends Thread{
         }
         return "";
     }
+    
+    private static String readBody(BufferedReader in, int contentLength) throws IOException {
+        if (contentLength <= 0) {
+            return "";
+        }
+        char[] buf = new char[contentLength];
+        int read = 0;
+        while (read < contentLength) {
+            int n = in.read(buf, read, contentLength - read);
+            if (n == -1) {
+                break;
+            }
+            read += n;
+        }
+        return new String(buf, 0, read);
+    }
 
+    private static boolean pathVerify(String path) {
+        if(path.endsWith("/")){
+            path += "index.html";
+        }
+
+        File file = new File("htdocs" + path);
+
+        if(file.exists()) return true;
+        
+        return false;
+    }
+
+    private int contentLenghtFinder(BufferedReader in) throws IOException{
+        boolean flag = false;
+        int cl = 0;
+
+        while (!flag) {
+            String str = in.readLine();
+
+            if(str.startsWith("content-length:")){
+                String[] cls = str.split(" ", 2);
+                cl = Integer.parseInt(cls[1]);
+            }
+
+
+            if(str == "") flag = true;
+        }
+
+        return cl;
+    }
 }
+/*
+        
+*/
